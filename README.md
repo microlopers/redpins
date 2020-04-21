@@ -3,5 +3,5 @@ Handles data for redpins-client. Client-server communication is handled by Rest-
 
 ## Run application
 ```
-graddle bootRun
+gradle bootRun
 ```
