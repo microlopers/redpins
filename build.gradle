@@ -7,20 +7,49 @@
  */
 
 plugins {
+    // Spring boot
+    id 'org.springframework.boot' version '2.2.0.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+
     // Apply the java plugin to add support for Java
     id 'java'
 
     // Apply the application plugin to add support for building a CLI application
     id 'application'
+
+    id 'org.sonarqube' version '2.7'
+    id 'jacoco'
+    id "com.adarshr.test-logger" version "1.7.0" // Test logger plugin used for pretty printed test logs with summary
+    id 'de.undercouch.download' version '3.4.3' // Plugin used to download Newrelic extension
+}
+
+ext {
+    versionWebjarsSwaggerUi = '3.24.3'
+    versionJmockit = '1.44'
+    versionSlf4j = '1.7.26'
+    versionJunitJupiter = '5.3.2'
+    versionJunitPlatform = '1.3.2'
+    versionJacoco = '0.8.2'
+}
+
+configurations {
+    testImplementation.extendsFrom compileOnly
+    testAgent
 }
 
 repositories {
     // Use jcenter for resolving dependencies.
     // You can declare any Maven/Ivy/file repository here.
     jcenter()
+    mavenCentral()
 }
 
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:27.1-jre'
 
@@ -29,14 +58,66 @@ dependencies {
 
     // Use JUnit Jupiter Engine for testing.
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.4.2'
+
+    // Unit Tests
+    testCompile "org.junit.jupiter:junit-jupiter-api:${versionJunitJupiter}"
+    testCompile "org.junit.jupiter:junit-jupiter-engine:${versionJunitJupiter}"
+    testCompile "org.junit.jupiter:junit-jupiter-params:${versionJunitJupiter}"
+    testCompile "org.junit.platform:junit-platform-launcher:${versionJunitPlatform}"
+    // Add agent for JMockit
+    testAgent "org.jmockit:jmockit:$versionJmockit"
+    testImplementation "org.jmockit:jmockit:$versionJmockit"
+    // Additional test dependencies (e.g. to parse JSON from string)
+    testCompile 'org.glassfish:jakarta.json:1.1.6'
+    testCompile 'jakarta.json.bind:jakarta.json.bind-api:1.0.2'
+    testCompile 'org.eclipse:yasson:1.0.5'
+}
+
+/************************************* Compilation warnings and java compatibility ************************************/
+allprojects {
+    apply plugin: 'java'
+    sourceCompatibility = 11
+    targetCompatibility = 11
+}
+
+// Print deprecation and unchecked messages when compiling
+allprojects {
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
+    }
 }
 
 application {
     // Define the main class for the application
-    mainClassName = 'redpins.App'
+    mainClassName = 'com.microlopers.redpins.carlogs.RedpinsServer'
 }
 
+/************************************* Test / Jacoco / SonarQube ******************************************************/
 test {
-    // Use junit platform for unit tests
-    useJUnitPlatform()
+    // Define JUnit platform
+    useJUnitPlatform {
+        includeEngines 'junit-jupiter'
+    }
+
+    // Test logs using plugin and standard theme
+    testlogger {
+        theme 'standard'
+    }
+
+    // JMockit - fixes issue when running tests with mocks
+    def jmockit = configurations.testAgent.files.find { it.name.contains("jmockit-$versionJmockit") }.absolutePath
+    jvmArgs "-javaagent:$jmockit"
+}
+
+jacoco {
+    toolVersion versionJacoco
+}
+
+sonarqube {
+    properties {
+        property 'sonar.projectName', "${title}"
+        property 'sonar.projectKey', "com.ibm.q2c.tss:tss-api"
+    }
 }
