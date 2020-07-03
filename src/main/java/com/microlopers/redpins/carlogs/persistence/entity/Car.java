@@ -10,8 +10,8 @@ public class Car  implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    @Column(name= "licenceplate")
-    private String licencePlate;
+    @Column(name= "licencePlateId")
+    private String licencePlateId;
 
     @Column(name= "brand")
     private String brand;
@@ -23,9 +23,9 @@ public class Car  implements Serializable {
         super();
     }
 
-    public Car(String licencePlate, String brand, String color) {
+    public Car(String licencePlateId, String brand, String color) {
         super();
-        this.licencePlate = licencePlate;
+        this.licencePlateId = licencePlateId;
         this.brand = brand;
         this.color = color;
     }
@@ -38,12 +38,12 @@ public class Car  implements Serializable {
         this.id = id;
     }
 
-    public String getLicencePlate() {
-        return licencePlate;
+    public String getLicencePlateId() {
+        return licencePlateId;
     }
 
-    public void setLicencePlate(String licencePlate) {
-        this.licencePlate = licencePlate;
+    public void setLicencePlateId(String licencePlateId) {
+        this.licencePlateId = licencePlateId;
     }
 
     public String getBrand() {
